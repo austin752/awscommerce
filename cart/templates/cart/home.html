@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+        <div class="row">
+                <div class="col-12">
+                    <p class="lead"><b>Your Cart</b></p>
+                </div>
+            <hr />
+        </div>
+        <div class="row">
+            {% if cart.products.exists %}
+               <table class="table">
+                  <thead>
+                    <tr>
+                      <th scope="col">#</th>
+                      <th scope="col">Product Image</th>
+                      <th scope="col">Product Name</th>
+                      <th scope="col">Product Price</th>
+                      <th scope="col">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for product in cart.products.all %}
+                    <tr>
+                      <th scope="row">{{ forloop.counter }}</th>
+                      <td><img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid" style="width:50px;"></td>
+                      <td>{{ product.name }}<br />
+                          {% include 'products/snippets/update-cart.html'  with product=product cart=cart in_cart=True  %}</td>
+                      <td>{{ product.price }}</td>
+                      <td></td>
+                    </tr>
+                  {% endfor %}
+                      <tr>
+                          <th colspan="4"></th>
+                          <td><b>Subtotal: </b> ${{ cart.subtotal }}</td>
+                      </tr>
+                      <tr>
+                          <th colspan="4"></th>
+                          <td><b>Total: </b> ${{ cart.total }}</td>
+                      </tr>
+                      <tr>
+                          <th colspan="4"></th>
+                          <td><a class="btn btn-lg btn-success" href="{% url 'cart:checkout' %}">Checkout</a></td>
+                      </tr>
+                  </tbody>
+                </table>
+            {% else %}
+            <p>Cart Empty<br />
+                <a href="{% url 'products:list' %}">Keep Shopping</a></p>
+            {% endif %}
+        </div>
+{% endblock %}

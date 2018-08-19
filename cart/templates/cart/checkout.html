@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    <div class="col">
+        {% if object %}
+                <p>Cart Total: {{ object.cart.total }}</p>
+                <p>Shipping Total: {{ object.shipping_total }}</p>
+                <p>Order Total: {{ object.total }}</p>
+                <p>Item Name: {{ object.name }}</p>
+                <p>Item Description: {{ object.description }}</p>
+                <p>Item Price: {{ object.price }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
