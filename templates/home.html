@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+<div class="col">
+    <h1>Hello World</h1>
+        <img src="{% static 'img/beach.jpg' %}" class="img-fluid" />
+        {{ premium_content }}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row">
+    {% if query %}
+        <div class="col-12">
+            Results for {{ query }}
+            <hr />
+        </div>
+    {% else %}
+        <div class="col-12">
+            {% include 'search/snippets/search-form.html' %}
+            <hr />
+        </div>
+    {% endif %}
+</div>
+<div class="row">
+        {% for obj in object_list %}
+            <div class="col">
+                {% include 'products/snippets/card.html' with instance=obj %}
+
+                {%  if forloop.counter|divisibleby:3 %}
+                    </div></div><div class="row">
+                {% else %}
+                    </div>
+                {% endif %}
+        {% endfor %}
+</div>
+{% endblock %}

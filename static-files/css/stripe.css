@@ -1,0 +1,195 @@
+
+Search documentation...
+CREATE ACCOUNT  Support Sign in
+Card Element Quickstart
+Securely collect sensitive card details using Elements, our pre-built UI components.
+
+The following guide walks through the creation of this payment form.
+
+Result HTML CSS JavaScript
+/**
+ * The CSS shown here will not be introduced in the Quickstart guide, but shows
+ * how you can use CSS to style your Element's container.
+ */
+.StripeElement {
+  background-color: white;
+  height: 40px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 3px 0 #e6ebf1;
+  -webkit-transition: box-shadow 150ms ease;
+  transition: box-shadow 150ms ease;
+}
+
+.StripeElement--focus {
+  box-shadow: 0 1px 3px 0 #cfd7df;
+}
+
+.StripeElement--invalid {
+  border-color: #fa755a;
+}
+
+.StripeElement--webkit-autofill {
+  background-color: #fefde5 !important;
+}
+More examples
+You can see additional payment forms created with Elements on our examples page on GitHub.
+
+Try it out using the test card number 4242 4242 4242 4242, a random three-digit CVC number, any expiration date in the future, and a random five-digit U.S. ZIP code.
+
+Note that ZIP and postal code validation depends on your customer’s billing country. Use our international test cards to experiment with other postal code formats.
+
+Other options
+If you'd rather not build your own payment form, consider Checkout, our embedded, optimized payment tool.
+
+You may also wish to add support for Apple Pay or the cross-browser Payment Request API to your website to provide a faster checkout experience for customers.
+
+Processing payments with Stripe has two parts:
+
+Securely collecting payment details from your customer
+Using the collected payment method in a charge request
+You can make use of Stripe Elements, our pre-built UI components, to create a payment form that securely collects your customer’s card information without you needing to handle sensitive card data. The card details are then converted to a representative Token that you can safely send to your servers.
+
+Creating a custom payment form with Elements requires four steps:
+
+Set up Stripe Elements
+Create your payment form
+Create a token to securely transmit card information
+Submit the token and the rest of your form to your server
+HTTPS requirements
+All submissions of payment info using Elements are made via a secure HTTPS connection. However, to protect yourself from certain forms of man-in-the-middle attacks, and to prevent your customers from seeing Mixed Content warnings in modern browsers, you must serve the page containing the payment form over HTTPS as well.
+
+In short, the address of the page containing Elements must start with https:// rather than just http://. If you are not familiar with the process of buying SSL certificates and integrating them with your server to enable a secure HTTPS connection, check out our security documentation for more information.
+
+Step 1: Set up Stripe Elements
+Elements is available as part of Stripe.js. To get started, include this script on your pages—it should always be loaded directly from https://js.stripe.com:
+
+<script src="https://js.stripe.com/v3/"></script>
+To best leverage Stripe’s advanced fraud functionality, include this script on every page on your site, not just the checkout page. Including the script on every page allows Stripe to detect anomalous behavior that may be indicative of fraud as users browse your website.
+
+Next, create an instance of Elements:
+
+JavaScript JavaScript (ESNext)
+var stripe = Stripe('pk_test_g6do5S237ekq10r65BnxO6S0');
+var elements = stripe.elements();
+Localization
+Stripe Elements support 15 locales. By default, Elements uses the browser’s locale. You can also specify a locale when calling stripe.elements().
+
+We've placed a random API key in the code. Replace it with your actual publishable API key to test this code through your Stripe account.
+
+When you’re ready to accept live card payments, replace the test key with your live key for production uses. Learn more about how the keys play into test and live modes.
+
+Step 2: Create your payment form
+Custom styling
+Use the available style options of Elements when customizing the design of your payment form. You can also apply custom CSS to the container DOM element.
+
+No CSS styles should be applied directly to anything Elements inserts inside your container DOM element. Style the container DOM element instead.
+
+To securely collect card details from your customers, Elements creates UI components for you that are hosted by Stripe. They are then placed into your payment form, rather than you creating them directly.
+
+To determine where to insert these components, create empty DOM elements (containers) with unique IDs within your payment form. We recommend placing your container within a <label> or next to a <label> with a for attribute that matches the unique id of the Element container. By doing so, the Element automatically gains focus when the customer clicks on the corresponding label.
+
+For example:
+
+<form action="/charge" method="post" id="payment-form">
+  <div class="form-row">
+    <label for="card-element">
+      Credit or debit card
+    </label>
+    <div id="card-element">
+      <!-- A Stripe Element will be inserted here. -->
+    </div>
+
+    <!-- Used to display Element errors. -->
+    <div id="card-errors" role="alert"></div>
+  </div>
+
+  <button>Submit Payment</button>
+</form>
+When the form above has loaded, create an instance of an Element and mount it to the Element container created above:
+
+JavaScript JavaScript (ESNext)
+// Custom styling can be passed to options when creating an Element.
+var style = {
+  base: {
+    // Add your base input styles here. For example:
+    fontSize: '16px',
+    color: "#32325d",
+  }
+};
+
+// Create an instance of the card Element.
+var card = elements.create('card', {style: style});
+
+// Add an instance of the card Element into the `card-element` <div>.
+card.mount('#card-element');
+The card Element simplifies the form and minimizes the number of fields required by inserting a single, flexible input field that securely collects all necessary card details. Refer to our Stripe.js reference documentation for a full list of Element types that are supported.
+
+Elements validates user input as it is typed. To help your customers catch mistakes, you should listen to change events on the card Element and display any errors:
+
+JavaScript JavaScript (ESNext)
+card.addEventListener('change', function(event) {
+  var displayError = document.getElementById('card-errors');
+  if (event.error) {
+    displayError.textContent = event.error.message;
+  } else {
+    displayError.textContent = '';
+  }
+});
+Step 3: Create a token to securely transmit card information
+The payment details collected using Elements can then be converted into a token. Create an event handler that handles the submit event on the form. The handler sends the fields to Stripe for tokenization and prevents the form’s submission (the form is submitted by JavaScript in the next step).
+
+JavaScript JavaScript (ESNext)
+// Create a token or display an error when the form is submitted.
+var form = document.getElementById('payment-form');
+form.addEventListener('submit', function(event) {
+  event.preventDefault();
+
+  stripe.createToken(card).then(function(result) {
+    if (result.error) {
+      // Inform the customer that there was an error.
+      var errorElement = document.getElementById('card-errors');
+      errorElement.textContent = result.error.message;
+    } else {
+      // Send the token to your server.
+      stripeTokenHandler(result.token);
+    }
+  });
+});
+stripe.createToken returns a Promise which resolves with a result object. This object has either:
+
+result.token: a Token was created successfully.
+result.error: there was an error. This includes client-side validation errors. Refer to the API reference for all possible errors.
+Stripe validates card information when it is saved. As a result of this process, customers may see a temporary authorization for $1 on their statement. This does not guarantee that any future charges succeed (e.g., the card no longer has sufficient funds, is reported lost or stolen, or if the account is closed). This process also includes the results of any checks, including traditional bank checks by Radar (e.g., CVC or ZIP code), that may have been performed.
+
+Step 4: Submit the token and the rest of your form to your server
+The last step is to submit the token, along with any additional information that has been collected, to your server.
+
+JavaScript JavaScript (ESNext)
+function stripeTokenHandler(token) {
+  // Insert the token ID into the form so it gets submitted to the server
+  var form = document.getElementById('payment-form');
+  var hiddenInput = document.createElement('input');
+  hiddenInput.setAttribute('type', 'hidden');
+  hiddenInput.setAttribute('name', 'stripeToken');
+  hiddenInput.setAttribute('value', token.id);
+  form.appendChild(hiddenInput);
+
+  // Submit the form
+  form.submit();
+}
+Using Elements with React
+If you intend to use Stripe Elements with React, use react-stripe-elements, our open source library that wraps Stripe Elements in a set of convenient React components.
+
+Next steps
+Congrats! You now have a custom payment form to accept card payments with Stripe. Once you’ve sent your form to your server, you’ll be able to use the token to perform a charge or to save to a customer. Learn more about how to create charges or make use of subscriptions.
+
+Creating charges and saving payment details
+Billing quickstart
+Stripe.js reference
+Questions?
+We're always happy to help with code or other questions you might have! Search our documentation, contact support, or connect with our sales team. You can also chat live with other developers in #stripe on freenode.
+
+Was this page helpful? YES NO
+
